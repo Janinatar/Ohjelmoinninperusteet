@@ -1,6 +1,6 @@
 from pathlib import Path
 
-# Robust: find the text file located in the same folder as this script
+# This script finds 'sana.txt' in the same folder as the script and prints it.
 text_path = Path(__file__).with_name('sana.txt')
 
 try:
@@ -9,5 +9,3 @@ except FileNotFoundError:
     print(f"Tiedostoa ei löytynyt: {text_path}")
 except Exception as e:
     print("Virhe luettaessa tiedostoa:", e)
-
-
