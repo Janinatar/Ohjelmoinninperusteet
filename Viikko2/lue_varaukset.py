@@ -1,47 +1,99 @@
-from datetime import datetime, date, time
+from datetime import date, time
+import os
 
-def lue_varaus():
-    # Luetaan rivin sisältö
-    with open("varaukset.txt", "r", encoding="utf-8") as f:
-        rivi = f.readline().strip()
+def parse_bool(s):
+    s = s.strip()
+    return s in ("True", "true", "1", "Kyllä", "kyllä", "yes", "Yes")
 
-    # Erotellaan tiedot | merkillä
-    osat = rivi.split("|")
+def fmt_number_trim(x):
+    # Muotoile numero niin että turhat nollat katoavat (39.90 -> 39.9, 40.00 -> 40)
+    s = f"{x:.2f}"
+    s = s.rstrip("0").rstrip(".")
+    return s
 
-    # Puretaan tiedot muuttujiin
-    varausnumero = int(osat[0])                         # int
-    varaaja = osat[1]                                   # str
+def käsittele_rivi(rivi, lineno):
+    parts = rivi.strip().split("|")
+    if len(parts) < 10:
+        print(f"[Rivi {lineno}] Virhe: odotettiin 10 saraketta, löytyi {len(parts)}. Rivi: {rivi!r}")
+        return
 
-    # Päivämäärä: "2025-10-31" -> datetime.date
-    varauspaiva = date.fromisoformat(osat[2])
+    try:
+        varausnumero = int(parts[0].strip())
+    except ValueError:
+        print(f"[Rivi {lineno}] Virhe: varausnumero ei ole int: {parts[0]!r}")
+        return
 
-    # Aika: "10:00" -> datetime.time
-    aloitusaika = time.fromisoformat(osat[3])
+    varaaja = parts[1].strip()
 
-    tuntimaara = int(osat[4])                           # int
-    tuntihinta = float(osat[5])                         # float
-    maksettu = osat[6] == "True"                        # bool
+    # Päivämäärä: yyy-mm-dd -> date
+    try:
+        varauspaiva = date.fromisoformat(parts[2].strip())
+    except Exception as e:
+        print(f"[Rivi {lineno}] Virhe päivämäärän parsinnassa ({parts[2]!r}): {e}")
+        return
 
-    kohde = osat[7]                                     # str
-    puhelin = osat[8]                                   # str
-    sahkoposti = osat[9]                                # str
+    # Aika: HH:MM -> time
+    try:
+        aloitusaika = time.fromisoformat(parts[3].strip())
+    except Exception as e:
+        print(f"[Rivi {lineno}] Virhe ajan parsinnassa ({parts[3]!r}): {e}")
+        return
 
-    # Lasketaan kokonaishinta
+    try:
+        tuntimaara = int(parts[4].strip())
+    except ValueError:
+        print(f"[Rivi {lineno}] Virhe: tuntimäärä ei ole int: {parts[4]!r}")
+        return
+
+    try:
+        tuntihinta = float(parts[5].strip())
+    except ValueError:
+        print(f"[Rivi {lineno}] Virhe: tuntihinta ei ole float: {parts[5]!r}")
+        return
+
+    maksettu_raw = parts[6].strip()
+    maksettu_bool = parse_bool(maksettu_raw)
+    maksettu = "Kyllä" if maksettu_bool else "Ei"
+
+    kohde = parts[7].strip()
+    puhelin = parts[8].strip()
+    sahkoposti = parts[9].strip()
+
     kokonaishinta = tuntimaara * tuntihinta
 
-    # Tulostetaan vaaditussa muodossa
+    # Tulostus
     print(f"Varausnumero: {varausnumero}")
     print(f"Varaaja: {varaaja}")
     print(f"Päivämäärä: {varauspaiva.day}.{varauspaiva.month}.{varauspaiva.year}")
     print(f"Aloitusaika: {aloitusaika.strftime('%H:%M')}")
     print(f"Tuntimäärä: {tuntimaara}")
-    print(f"Tuntihinta: {tuntihinta} €")
-    print(f"Kokonaishinta: {kokonaishinta} €")
-    print(f"Maksettu: {'Kyllä' if maksettu else 'Ei'}")
+    print(f"Tuntihinta: {fmt_number_trim(tuntihinta)} €")
+    print(f"Kokonaishinta: {fmt_number_trim(kokonaishinta)} €")
+    print(f"Maksettu: {maksettu}")
     print(f"Kohde: {kohde}")
     print(f"Puhelin: {puhelin}")
     print(f"Sähköposti: {sahkoposti}")
+    print()  # tyhjä rivi rivien väliin
 
+def main():
+    path = "varaukset.txt"
+    if not os.path.exists(path):
+        print(f"Virhe: tiedostoa '{path}' ei löytynyt. Varmista että se on samassa kansiossa skriptin kanssa.")
+        return
+
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+
+    if not lines:
+        print("Varoitus: tiedosto on tyhjä.")
+        return
+
+    for i, line in enumerate(lines, start=1):
+        if line.strip() == "":
+            continue
+        käsittele_rivi(line, i)
 
 if __name__ == "__main__":
-    lue_varaus()
+    main()
+
+  
