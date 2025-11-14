@@ -1,43 +1,43 @@
+from datetime import datetime, date, time
+
 def lue_varaus():
-    # Luetaan tiedoston ensimmäinen rivi
+    # Luetaan rivin sisältö
     with open("varaukset.txt", "r", encoding="utf-8") as f:
         rivi = f.readline().strip()
 
-    # Erotellaan tiedot |-merkin perusteella
-    (
-        varausnumero,
-        varaaja,
-        pvm_raw,
-        aloitusaika,
-        tuntimaara_raw,
-        tuntihinta_raw,
-        maksettu_raw,
-        kohde,
-        puhelin,
-        sahkoposti
-    ) = rivi.split("|")
+    # Erotellaan tiedot | merkillä
+    osat = rivi.split("|")
 
-    # Muunnetaan tietotyypit
-    # Päivämäärä muotoon DD.MM.YYYY
-    yyyy, mm, dd = pvm_raw.split("-")
-    pvm = f"{dd}.{mm}.{yyyy}"
+    # Puretaan tiedot muuttujiin
+    varausnumero = int(osat[0])                         # int
+    varaaja = osat[1]                                   # str
 
-    tuntimaara = float(tuntimaara_raw)
-    tuntihinta = float(tuntihinta_raw)
+    # Päivämäärä: "2025-10-31" -> datetime.date
+    varauspaiva = date.fromisoformat(osat[2])
+
+    # Aika: "10:00" -> datetime.time
+    aloitusaika = time.fromisoformat(osat[3])
+
+    tuntimaara = int(osat[4])                           # int
+    tuntihinta = float(osat[5])                         # float
+    maksettu = osat[6] == "True"                        # bool
+
+    kohde = osat[7]                                     # str
+    puhelin = osat[8]                                   # str
+    sahkoposti = osat[9]                                # str
+
+    # Lasketaan kokonaishinta
     kokonaishinta = tuntimaara * tuntihinta
 
-    # Muutetaan True/False -> Kyllä/Ei
-    maksettu = "Kyllä" if maksettu_raw == "True" else "Ei"
-
-    # Tulostus vaaditussa muodossa
+    # Tulostetaan vaaditussa muodossa
     print(f"Varausnumero: {varausnumero}")
     print(f"Varaaja: {varaaja}")
-    print(f"Päivämäärä: {pvm}")
-    print(f"Aloitusaika: {aloitusaika}")
-    print(f"Tuntimäärä: {tuntimaara:g}")
+    print(f"Päivämäärä: {varauspaiva.day}.{varauspaiva.month}.{varauspaiva.year}")
+    print(f"Aloitusaika: {aloitusaika.strftime('%H:%M')}")
+    print(f"Tuntimäärä: {tuntimaara}")
     print(f"Tuntihinta: {tuntihinta} €")
     print(f"Kokonaishinta: {kokonaishinta} €")
-    print(f"Maksettu: {maksettu}")
+    print(f"Maksettu: {'Kyllä' if maksettu else 'Ei'}")
     print(f"Kohde: {kohde}")
     print(f"Puhelin: {puhelin}")
     print(f"Sähköposti: {sahkoposti}")
