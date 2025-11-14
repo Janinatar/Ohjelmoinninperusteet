@@ -1,26 +1,35 @@
 def lue_varaus():
-    # Luetaan tiedosto
+    # Luetaan tiedoston ensimmäinen rivi
     with open("varaukset.txt", "r", encoding="utf-8") as f:
         rivi = f.readline().strip()
 
-    
-    osat = rivi.split("|")
+    # Erotellaan tiedot |-merkin perusteella
+    (
+        varausnumero,
+        varaaja,
+        pvm_raw,
+        aloitusaika,
+        tuntimaara_raw,
+        tuntihinta_raw,
+        maksettu_raw,
+        kohde,
+        puhelin,
+        sahkoposti
+    ) = rivi.split("|")
 
-    varausnumero = osat[0]
-    varaaja = osat[1]
-    pvm = osat[2]
-    aloitusaika = osat[3]
-    tuntimaara = float(osat[4])
-    tuntihinta = float(osat[5])
-    maksettu = osat[6]
-    kohde = osat[7]
-    puhelin = osat[8]
-    sahkoposti = osat[9]
+    # Muunnetaan tietotyypit
+    # Päivämäärä muotoon DD.MM.YYYY
+    yyyy, mm, dd = pvm_raw.split("-")
+    pvm = f"{dd}.{mm}.{yyyy}"
 
-    # Laske kokonaishinta
+    tuntimaara = float(tuntimaara_raw)
+    tuntihinta = float(tuntihinta_raw)
     kokonaishinta = tuntimaara * tuntihinta
 
-    # Tulostus täsmälleen vaaditussa muodossa
+    # Muutetaan True/False -> Kyllä/Ei
+    maksettu = "Kyllä" if maksettu_raw == "True" else "Ei"
+
+    # Tulostus vaaditussa muodossa
     print(f"Varausnumero: {varausnumero}")
     print(f"Varaaja: {varaaja}")
     print(f"Päivämäärä: {pvm}")
